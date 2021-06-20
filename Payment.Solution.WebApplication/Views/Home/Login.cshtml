@@ -1,0 +1,60 @@
+﻿@using Payment.Solution.ViewModels;
+
+@model LoginViewModel
+
+@{
+    ViewData["Title"] = "Login";
+}
+
+<style>
+    .login-form {
+        width: 340px;
+        margin: 50px auto;
+        font-size: 15px;
+    }
+</style>
+
+
+<div class="login-form">
+    <form id="loginForm">
+
+        <h2 class="text-center">Log in</h2>
+
+        <div class="alert alert-warning" role="alert" id="warningArea" hidden>
+            This is a warning alert—check it out!
+        </div>
+
+        <div class="form-group">
+            <input type="text" name="IdentityNumber" class="form-control" placeholder="Identity Number" required="required">
+        </div>
+
+        <div class="form-group">
+            <input type="password" name="Password" class="form-control" placeholder="Password" required="required">
+        </div>
+
+        <div class="form-group">
+            <button type="button" onclick="login();" class="btn btn-primary btn-block">Log in</button>
+        </div>
+
+    </form>
+</div>
+
+<script>
+    function login() {
+        $.ajax({
+            type: "POST",
+            url: '/Home/Login',
+            data: $('#loginForm').serialize(),
+            success: function (result) {
+                if (result.status == 1) {
+                    window.location.href = window.location.origin + "/Home/Index";
+                } else {
+                    $('#warningArea').html(result.message);
+                    $('#warningArea').removeAttr('hidden');
+                }
+            }, error: function (err) {
+                console.log(err);
+            }
+        });
+    }
+</script>

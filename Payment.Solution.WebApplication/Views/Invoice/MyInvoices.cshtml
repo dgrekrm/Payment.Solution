@@ -1,0 +1,102 @@
+﻿@using Payment.Solution.ViewModels
+
+@model List<InvoiceViewModel>
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="form-group">
+    <label for="paymentStatus">Ödeme Durumu</label>
+    <select class="form-control" id="paymentStatus">
+        <option value="-1">Hepsi</option>
+        <option value="0">Ödenecekler</option>
+        <option value="1">Ödenmişler</option>
+    </select>
+</div>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Payment Status</th>
+            <th scope="col">Amount</th>
+            <th scope="col">Process</th>
+        </tr>
+    </thead>
+    <tbody id="invoices">
+
+        @for (int i = 0; i < Model.Count; i++)
+        {
+            <tr>
+                <th scope="row">@(i+1)</th>
+                <td>@Model[i].PaymentStatusText</td>
+                <td>@Model[i].Amount</td>
+                <td>
+                    <button id="doPayment_@(Model[i].Id)"
+                            type="button"
+                            class="btn btn-light" @(Model[i].PaymentStatus ? "disabled" : "")
+                            onclick="doPayment('@Model[i].Id');">
+                        Ödeme Yap
+                    </button>
+                </td>
+            </tr>
+        }
+
+    </tbody>
+</table>
+
+@section scripts{
+    <script>
+
+        function doPayment(id) {
+            $.ajax({
+                type: "POST",
+                url: '/Invoice/DoPayment',
+                data: { invoiceId: id },
+                success: function (result) {
+                    if (result.status == 1) {
+                        $('#doPayment_' + id).attr('disabled', true);
+                    } else {
+                        console.log("an error occurred: " + result.message);
+                    }
+                }, error: function (err) {
+                    console.log(err);
+                }
+            });
+        }
+
+        $('#paymentStatus').change(function () {
+            $.ajax({
+                type: "POST",
+                url: '/Invoice/GetInvoices',
+                data: { paymentStatus: $('#paymentStatus').val() },
+                success: function (result) {
+                    if (result.status == 1) {
+                        var htmlString = "";
+                        result.invoices.forEach(function (invoice, index) {
+                            htmlString += '<tr>' +
+                                '<th scope="row">' + (index + 1) + '</th>' +
+                                '<td>' + invoice.paymentStatusText + '</td>' +
+                                '<td>' + invoice.amount + '</td>' +
+                                '<td>' +
+                                '<button id="doPayment_' + invoice.id + '"' +
+                                'type = "button"' +
+                                'class="btn btn-light" ' + (invoice.paymentStatus ? "disabled " : " ") +
+                                'onclick="doPayment(' + invoice.identityNumber.toString() + ');"> Ödeme Yap </button>' +
+                                '</td>' +
+                                '</tr>'
+                        });
+
+                        $('#invoices').html(htmlString);
+
+                    } else {
+                        console.log("an error occurred: " + result.message);
+                    }
+                }, error: function (err) {
+                    console.log(err);
+                }
+            });
+        })
+
+    </script>
+} 
